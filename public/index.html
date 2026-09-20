@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="評価モデル Jev とローカルで対戦するオセロ" />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>Jev Othello</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">J</div>
+        <div><p class="eyebrow">SYSTEM ONE / LOCAL MATCH</p><h1>Jev Othello</h1></div>
+        <div id="status-pill" class="live-pill"><span></span><b>YOUR TURN</b></div>
+      </header>
+
+      <section class="game-layout">
+        <div class="board-wrap">
+          <div class="turn-line"><span id="turn-label">あなたの番</span><strong id="turn-disc">黒</strong></div>
+          <div id="board" class="board" role="grid" aria-label="オセロ盤"></div>
+          <p id="notice" class="board-help" aria-live="polite">光っているマスに置けます</p>
+        </div>
+
+        <aside class="match-panel">
+          <div class="score-row">
+            <div><span class="mini-disc black"></span>あなた<strong id="black-score">2</strong></div>
+            <span class="versus">VS</span>
+            <div><span class="mini-disc white"></span>Jev<strong id="white-score">2</strong></div>
+          </div>
+          <div class="jev-card">
+            <div class="jev-orbit" aria-hidden="true"><span>J</span></div>
+            <div><p class="eyebrow">YOUR OPPONENT</p><h2>Jev</h2><p>合法手を比較し、Choiceで次の一手を決める。</p></div>
+          </div>
+          <div class="signal-card">
+            <div class="signal-head"><span>JEV SIGNAL</span><span id="model-label">待機中</span></div>
+            <div class="signal-grid">
+              <div><small>直前の手</small><strong id="last-move">—</strong></div>
+              <div><small>確信度</small><strong id="confidence">—</strong></div>
+            </div>
+            <p id="signal-copy">あなたが着手すると、Jev が合法手を比較します。</p>
+            <div class="quota"><span>この起動中の残り</span><strong id="remaining">80</strong></div>
+          </div>
+          <button id="restart" class="restart" type="button">↻　最初から</button>
+        </aside>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
