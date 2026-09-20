@@ -22,6 +22,7 @@ const elements = {
 let board;
 let phase;
 let lastMove;
+let history;
 let match = 0;
 
 function initialBoard() {
@@ -72,6 +73,10 @@ function playMove(position, move, player) {
 
 function moveLabel(move) {
   return `${'ABCDEFGH'[move.col]}${move.row + 1}`;
+}
+
+function notation(move) {
+  return `${'abcdefgh'[move.col]}${move.row + 1}`;
 }
 
 function setPhase(next) {
@@ -136,7 +141,7 @@ async function requestJev(position) {
   setPhase('thinking');
   elements.notice.textContent = 'Jev が合法手を評価中…';
   elements.model.textContent = '評価中';
-  elements.signalCopy.textContent = '候補手の安定性・角・相手の自由度を比較しています。';
+  elements.signalCopy.textContent = '候補手の最善度と悪手リスクを同時に評価しています。';
   render();
 
   let current = position;
@@ -145,7 +150,7 @@ async function requestJev(position) {
       const response = await fetch('/api/jev-move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ board: current }),
+        body: JSON.stringify({ board: current, history }),
       });
       const result = await response.json();
       if (currentMatch !== match) return;
@@ -153,12 +158,15 @@ async function requestJev(position) {
       if (!result.move || !getFlips(current, result.move.row, result.move.col, WHITE).length) throw new Error('Jev が不正な手を返しました。');
       current = playMove(current, result.move, WHITE);
       board = current;
+      history.push(notation(result.move));
       lastMove = result.move.row * 8 + result.move.col;
       elements.model.textContent = result.model || 'JEV';
       elements.lastMove.textContent = moveLabel(result.move);
       elements.confidence.textContent = `${Math.round(result.confidence * 100)}%`;
       elements.remaining.textContent = result.remaining;
-      elements.signalCopy.textContent = 'Jev が評価した手を盤面へ反映しました。';
+      elements.signalCopy.textContent = result.overruled
+        ? `Jev の第一候補は ${result.overruled.toUpperCase()} でしたが、悪手リスクの評価で ${moveLabel(result.move)} に切り替えました。`
+        : `${moveLabel(result.move)} を選択。悪手リスク ${Math.round((result.risk ?? 0) * 100)}%。`;
       if (finishOrReturn()) return;
       elements.notice.textContent = 'あなたはパス。Jev がもう一度評価中…';
       render();
@@ -178,6 +186,7 @@ function playHuman(move) {
   if (phase !== 'human' || !getFlips(board, move.row, move.col, BLACK).length) return;
   setPhase('thinking');
   board = playMove(board, move, BLACK);
+  history.push(notation(move));
   lastMove = move.row * 8 + move.col;
   render();
   if (!legalMoves(board, WHITE).length) {
@@ -191,6 +200,7 @@ function restart() {
   match += 1;
   board = initialBoard();
   lastMove = null;
+  history = [];
   setPhase('human');
   elements.notice.textContent = '光っているマスに置けます';
   elements.model.textContent = '待機中';
